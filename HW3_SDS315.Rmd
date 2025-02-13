@@ -1,0 +1,455 @@
+---
+title: "HW 3 SDS 315"
+author: "Somya Krishna, sk55256"
+date: "2025-01-30"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+https://github.com/somya-k535/SDS-313-HW3.git
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE, 
+                      warning = TRUE,
+                      message = FALSE,
+                      fig.align = "center", 
+                      R.options = list(max.print=50))
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Load libraries
+library(tidyverse)
+library(mosaic)
+
+# Get data set
+gas <- read.csv("gasprices.csv")
+```
+
+# [Problem 1: Theories]{style="color:hotpink;"}
+
+In this problem, we will dive into how UT Austin students view their
+professors.
+
+## [Theory A]{style="color:palevioletred;"}
+
+Claim: Gas stations charge more if they lack direct competition in
+sight.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Gas stations charge more if they lack direct competition in sight.
+
+# bootstrap
+boot_gas <- do(10000)*diffmean(Price ~ Competitors, data = mosaic::resample(gas))
+
+# confidence interval
+confint(boot_gas, level = 0.95)
+
+# visualize
+boot_gas |>
+  ggplot() + geom_histogram(aes(x = diffmean), fill = "pink", color = "black") +
+  labs(title = "Distribution of Confidence Intervals (95%) for Gas Prices Amongst Different Competitors", x = "Sample Mean Difference in Price Amongst Different Competitors")
+```
+
+Evidence: To determine if gas stations charge more if they lack direct
+competition in sight, we must create a confidence interval using the
+Price (of gas at different gas stations in Austin) and Competitors (if
+there are competitors nearby) variables. The confidence interval had a
+lower bound of -0.055 and an upper bound of 0.007.
+
+Conclusion: Because the confidence interval includes 0, there is not
+enough evidence to support that a change in gas station prices is
+related to whether or not competitors are in the area of the gas
+station. The theory is not supported by the data.
+
+\newpage
+
+## [Theory B]{style="color:palevioletred;"}
+
+Claim: The richer the area, the higher the gas prices.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# The richer the area, the higher the gas prices.
+gas <- gas |>
+  mutate(is_rich = ifelse(Income > 45508, TRUE, FALSE))
+# bootstrap
+boot_area <- do(10000)*diffmean(Price ~ is_rich, data = mosaic::resample(gas))
+
+# confidence interval
+confint(boot_area, level = 0.95)
+
+# visualize
+boot_area |>
+  ggplot() + geom_histogram(aes(x = diffmean), fill = "pink", color = "black") +
+  labs(title = "Distribution of Confidence Intervals (95%) for Gas Prices Amongst Different Areas", x = "Sample Mean Difference in Price Amongst Different Areas")
+
+```
+
+Evidence: To determine if gas stations charge more based on if the area
+of the gas station is richer, we must create a confidence interval using
+the Price (of gas at different gas stations in Austin) and is_rich(if
+the income is greater than the median income of Austin, Texas)
+variables. The confidence interval had a lower bound of 0.004 and an
+upper bound of 0.066.
+
+Conclusion: Because the confidence interval does not include 0, there is
+enough evidence to support that a change in gas station prices is
+related to the income level of the gas station. The theory is supported
+by the data.
+
+\newpage
+
+## [Theory C]{style="color:palevioletred;"}
+
+Claim: Gas stations at stoplights charge more.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Gas stations at stoplights charge more.
+
+# bootstrap
+boot_stoplight <- do(10000)*diffmean(Price ~ Stoplight, data = mosaic::resample(gas))
+
+# confidence interval
+confint(boot_stoplight, level = 0.95)
+
+# visualize
+boot_stoplight |>
+  ggplot() + geom_histogram(aes(x = diffmean), fill = "pink", color = "black") +
+  labs(title = "Distribution of Confidence Intervals (95%) for Gas Prices with StopLights vs. No Stoplights", x = "Sample Mean Difference in Price, Stoplights")
+```
+
+Evidence: To determine if gas stations charge more based on if there is
+a stoplight in front of the gas station, we must create a confidence
+interval using the Price (of gas at different gas stations in Austin)
+and Stoplight(if there is a stoplight in front of the gas station)
+variables. The confidence interval had a lower bound of -0.038 and an
+upper bound of 0.0302.
+
+Conclusion: Because the confidence interval includes 0, there is not
+enough evidence to support that a change in gas station prices is
+related to whether or not there is a stoplight in front of the gas
+station. The theory is not supported by the data.
+
+\newpage
+
+## [Theory D]{style="color:palevioletred;"}
+
+Claim: Gas stations with direct highway access charge more.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Gas stations with direct highway access charge more.
+
+# bootstrap
+boot_highway <- do(10000)*diffmean(Price ~ Highway, data = mosaic::resample(gas))
+
+# confidence interval
+confint(boot_highway, level = 0.95)
+
+# visualize
+boot_highway |>
+  ggplot() + geom_histogram(aes(x = diffmean), fill = "pink", color = "black") +
+  labs(title = "Distribution of Confidence Intervals (95%) for Gas Prices with Highway vs. No Highway", x = "Sample Mean Difference in Price, Highway")
+```
+
+Evidence: To determine if gas stations charge more based on if the gas
+station is accessible from either a highway or a highway access road, we
+must create a confidence interval using the Price (of gas at different
+gas stations in Austin) and Highway(if the gas station is accessible
+from either a highway or a highway access road) variables. The
+confidence interval had a lower bound of 0.009 and an upper bound of
+0.083.
+
+Conclusion: Because the confidence interval does not include 0, there is
+enough evidence to support that a change in gas station prices is
+related to whether or not the gas station is accessible from either a
+highway or a highway access road. The theory is supported by the data.
+
+\newpage
+
+## [Theory E]{style="color:palevioletred;"}
+
+Claim: Shell charges more than all other non-Shell brands.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Shell charges more than all other non-Shell brands.
+
+gas <- gas |>
+  mutate(is_shell = ifelse(Name == "Shell", TRUE, FALSE))
+
+# bootstrap
+boot_shell <- do(10000)*diffmean(Price ~ is_shell, data = mosaic::resample(gas))
+
+# confidence interval
+confint(boot_shell, level = 0.95)
+
+# visualize
+boot_shell |>
+  ggplot() + geom_histogram(aes(x = diffmean), fill = "pink", color = "black") +
+  labs(title = "Distribution of Confidence Intervals (95%) for Gas Prices for Shell vs. No Shell", x = "Sample Mean Difference in Price, Shell")
+```
+
+Evidence: To determine if Shell charges more than other gas stations, we
+must create a confidence interval using the Price (of gas at different
+gas stations in Austin) and is_shell(if the gas station is Shell or not)
+variables. The confidence interval had a lower bound of 0.009 and an
+upper bound of 0.082.
+
+Conclusion: Because the confidence interval does not include 0, there is
+enough evidence to support that a change in gas station prices is
+related to whether or not the gas station is a Shell gas station or not.
+The theory is supported by the data.
+
+\newpage
+
+# [Problem 2: Mercedes S-Class Vehicles]{style="color:hotpink;"}
+
+In this problem, we will investigate Mercedes S-Class vehicles sold on
+cars.com.
+
+## [Part A]{style="color:palevioletred;"}
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+sclass <- read.csv("sclass.csv")
+# Filter the data set down to include only those cars where year == 2011 and trim == "63 AMG". Based on these 116 cars, compute a 95% bootstrap confidence interval for the average mileage of 2011 S-Class 63 AMGs that were hitting the used-car market when this data was collected.
+
+# filter dataset
+filtered_sclass <- sclass |>
+  filter(year == 2011) |>
+  filter(trim == "63 AMG")
+
+# bootstrap
+boot_sclass = do(10000)*mean(~mileage, data = mosaic::resample(filtered_sclass))
+
+# confidence interval
+confint(boot_sclass, level = 0.95)
+
+#visualize
+boot_sclass |>
+  ggplot() + geom_histogram(aes(x = mean), fill = "pink", color = "black") +
+  labs(x = "Sample Mileage", y = "Count", title = "Confidence Interval for Average Mileage of 2011 S-Class 63 AMGs")
+```
+
+My task was to filter the data set down to include only those cars where
+year == 2011 and trim == "63 AMG". Based on these 116 cars, compute a
+95% bootstrap confidence interval for the average mileage of 2011
+S-Class 63 AMGs that were hitting the used-car market when this data was
+collected.
+
+The lower bound of the confidence interval was 26362.76, and the upper
+bound was 31734.2. Since the confidence level was 95%, we are 95%
+confident that the average mileage of 2011 S-Class 63 AMGs that were
+hitting the used-car market when this data was collected is in between
+26362.76 miles and 31734.2 miles.
+
+## [Part B]{style="color:palevioletred;"}
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Filter the data set down to include only those cars where year == 2014 and trim == "550". Based on this sample of 2889 cars, compute a 95% bootstrap confidence interval for the proportion of all 2014 S-Class 550s that were painted black. Hint: you might find this easiest if you use mutate to first define a new variable, isBlack, that is either TRUE or FALSE depending on whether the car is black.
+
+# filter
+filt_sclass <- sclass |>
+  filter(year == 2014) |>
+  filter(trim == "550") |>
+  mutate(is_black = ifelse(color == "Black", TRUE, FALSE))|>
+  drop_na(is_black)
+# bootstrap
+boot_f_sclass <- do(10000)*prop(~is_black, data = mosaic::resample(filt_sclass))
+
+# confidence interval
+confint(boot_f_sclass, level = 0.95)
+
+#visualize
+boot_f_sclass |>
+  ggplot() + geom_histogram(aes(x = prop_TRUE), fill = "pink", color = "black") + 
+  labs(x = "Proportion", y = "Count", title = "Proportion of all 2014 S-Class 550s that were painted black")
+```
+
+My task was to filter the data set down to include only those cars where
+year == 2014 and trim == "550". Based on this sample of 2889 cars,
+compute a 95% bootstrap confidence interval for the proportion of all
+2014 S-Class 550s that were painted black. Hint: you might find this
+easiest if you use mutate to first define a new variable, isBlack, that
+is either TRUE or FALSE depending on whether the car is black.
+
+The lower bound of the confidence interval was 0.4167532, and the upper
+bound was 0.4527518 Since the confidence level was 95%, we are 95%
+confident that the proportion of all 2014 S-Class 550s that were painted
+black is in between 0.4167532 and 0.4527518.
+
+# [Problem 3: NBC TV Viewer Survey]{style="color:hotpink;"}
+
+In this problem, we will investigate NBC's market research survey on how
+viewers respond to TV shows.
+
+## [Part A]{style="color:palevioletred;"}
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+nbc <- read.csv("nbc_pilotsurvey.csv")
+#Part A. Consider the shows “Living with Ed” and “My Name is Earl.” Who makes people happier: Ed or Earl? Construct a filtered data set containing only viewer responses where Show == "Living with Ed" or Show == "My Name is Earl". Then construct a 95% confidence interval for the difference in mean viewer response to the Q1_Happy question for these two shows. Is there evidence that one show consistently produces a higher mean Q1_Happy response among viewers?
+
+# create a new dataset for just earl and ed shows
+earl_and_ed_data <- nbc |>
+  filter(Show == "Living with Ed" | Show == "My Name is Earl")
+
+# bootstrap samples for Q1_Happy for both shows
+boot_ed = do(10000)*diffmean(Q1_Happy ~ Show, data = mosaic::resample(earl_and_ed_data))
+
+# construct a confidence interval for the difference between ed-earl
+confint(boot_ed, level = 0.95)
+
+# visualize data
+boot_ed |>
+  ggplot() + geom_histogram(aes(x = diffmean), fill = "pink", color = "black") +
+  labs(x = "Sample Difference in Happiness Ratings for Ed-Earl", y = "Count", title= "Is there evidence that one show consistently produces a higher mean Q1_Happy response among viewers?")
+
+```
+
+1)  Question: What question are you trying to answer? I am trying to
+    find out if the show *Living with Ed* or *My Name is Earl* makes
+    people happier.
+
+2)  Approach: What approach/statistical tool did you use to answer the
+    question? I created a new dataset to just show the shows *Living with Ed* and *My Name is Earl*. I used bootstrapping with diffmean with Q1_Happy
+    (happiness ratings) and Show (Which show it was). I then conducted a
+    confidence interval at 95% confidence and plotted the results using
+    a histogram.
+
+3)  Results: What evidence/results did your approach provide to answer
+    the question? (E.g. any numbers, tables, figures as appropriate.)
+    Make sure to include appropriate measures of uncertainty!
+    The confidence interval has a lower bound of -0.3958495 and an upper bound of 0.1067168. The estimated difference was 0.01561044.
+
+4)  Conclusion: What is your conclusion about your question? Provide a
+    written interpretation of your results, understandable to
+    stakeholders who might plausibly take an interest in this data set.
+    Since the interval contains 0, there is no statistically significant evidence that the difference in happiness ratings is related to whether or not the show is *Living with Ed* or *My Name is Earl*. We are 95% confident that the difference in happiness ratings between the two shows is in between a decrease of 0.3958495 and an increase of 0.1067168.
+
+## [Part B]{style="color:palevioletred;"}
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Consider the shows “The Biggest Loser” and “The Apprentice: Los Angeles.” Which reality/contest show made people feel more annoyed? Construct a filtered data set containing only viewer responses where Show == "The Biggest Loser" or Show == "The Apprentice: Los Angeles". Then construct a 95% confidence interval for the difference in mean viewer response to the Q1_Annoyed question for these two shows. Is there evidence that one show consistently produces a higher mean Q1_Annoyed response among viewers?
+
+# only use these two shows
+loser_and_la_data <- nbc |>
+  filter(Show == "The Biggest Loser" | Show == "The Apprentice: Los Angeles") |>
+  drop_na(Q1_Annoyed) # drop na values
+
+# bootstrap samples
+boot_annoy = do(10000)*diffmean(Q1_Annoyed ~ Show, data = mosaic::resample(loser_and_la_data))
+
+# construct a confidence interval
+confint(boot_annoy, level = 0.95)
+
+# visualize data
+boot_annoy |>
+  ggplot() + geom_histogram(aes(x = diffmean), fill = "pink", color = "black") +
+  labs(x = "Sample Mean Difference in Annoyance Rating for The Biggest Loser - The Apprentice: Los Angeles", y = "Count", title= "Which reality/contest show made people feel more annoyed?")
+
+
+```
+
+1)  Question: What question are you trying to answer? I am trying to
+    find out if the show *The Biggest Loser* or *The Apprentice: Los Angeles.* makes
+    people more annoyed.
+
+2)  Approach: What approach/statistical tool did you use to answer the
+    question? I created a new dataset with the shows filtered to *The Biggest Loser* and *The Apprentice: Los Angeles.* and dropped n/a values. I used bootstrapping with diffmean with Q1_Annoyed
+    (annoyance ratings) and Show (Which show it was). I then conducted a
+    confidence interval at 95% confidence and plotted the results using
+    a histogram.
+
+3)  Results: What evidence/results did your approach provide to answer
+    the question? (E.g. any numbers, tables, figures as appropriate.)
+    Make sure to include appropriate measures of uncertainty!
+    The confidence interval has a lower bound of -0.5197406 and an upper bound of -0.01976126. The estimated difference was -0.1803638.
+
+4)  Conclusion: What is your conclusion about your question? Provide a
+    written interpretation of your results, understandable to
+    stakeholders who might plausibly take an interest in this data set.
+    Since the interval does not contain 0, there is statistically significant evidence that the difference in annoyance ratings is related to whether or not the show is *The Biggest Loser* or *The Apprentice: Los Angeles.*. We are 95% confident that the difference in annoyance ratings between the two shows is in between a decrease of 0.5197406 and a decrease of 0.01976126.
+
+## [Part C]{style="color:palevioletred;"}
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Construct a filtered data set containing only viewer responses where Show == "Dancing with the Stars". Based on this sample of respondents, what proportion of American TV watchers would we expect to give a response of 4 or greater to the “Q2_Confusing” question? Form a large-sample 95% confidence interval for this proportion and report your results.
+
+# only show dancing with the stars and create a variable about confusion, drop na values, and create a new variable to determine whether or not it is confusing
+dancing_data <- nbc |>
+  filter(Show=="Dancing with the Stars") |>
+  drop_na(Q2_Confusing) |>
+  mutate(confusing = ifelse(Q2_Confusing >= 4, 1, 0))
+
+# bootstrap sample for proportion of confusion
+boot_dancing <- do(10000) * mean(~confusing, data = mosaic::resample(dancing_data))
+
+# confidence interval
+confint(boot_dancing, level = 0.95)
+
+# visualize data
+boot_dancing |>
+  ggplot() + geom_histogram(aes(x = mean), fill = "pink", color = "black") +
+  labs(x = "Mean Confusion Rating", y = "Count", title= "What proportion of American TV watchers would we expect to give a response of 4 or greater to the “Q2_Confusing” question?")
+```
+
+
+1)  Question: What question are you trying to answer? I am trying to
+    find out what proportion of American TV watchers we would expect to give a response of 4 or greater to the “Q2_Confusing” question for the show *Dancing with the Stars*.
+
+2)  Approach: What approach/statistical tool did you use to answer the
+    question? I created a new filtered dataset. I filtered the show to just show Dancing with the Stars, dropped n/a values, and created a variable called confusing to tell whether or not people find Dancing with the Stars confusing. I used bootstrapping with mean with confusing (confused or not). I then conducted a confidence interval at 95% confidence and plotted the results using a histogram.
+
+3)  Results: What evidence/results did your approach provide to answer
+    the question? (E.g. any numbers, tables, figures as appropriate.)
+    Make sure to include appropriate measures of uncertainty!
+    The confidence interval has a lower bound of 0.03867403 and an upper bound of 0.1160221 The estimated difference was 0.03314917.
+
+4)  Conclusion: What is your conclusion about your question? Provide a
+    written interpretation of your results, understandable to
+    stakeholders who might plausibly take an interest in this data set.
+    We are 95% confident that the proportion of American TV watchers we would expect to give a response of 4 or greater to the “Q2_Confusing” question for the show *Dancing with the Stars* is between 0.03867403 and 0.1160221. The value is likely to be around 0.03314917.
+
+# [Problem 4: EBay]{style="color:hotpink;"}
+
+In this problem, we will investigate data from an experiment run by EBay
+in order to assess whether the company’s paid advertising on Google’s
+search platform was improving EBay’s revenue
+
+## [Confidence Interval for Difference in Revenue Ratio between the Treatment and Control DMAs]{style="color:palevioletred;"}
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ebay <- read.csv("ebay.csv")
+# Your task is to compute the difference in revenue ratio between the treatment and control DMAs and provide a 95% confidence interval for the difference. Use these results to assess the evidence for whether the revenue ratio is the same in the treatment and control groups, or whether instead the data favors the idea that paid search advertising on Google creates extra revenue for EBay. Make sure you use at least 10,000 Monte Carlo simulations in any bootstrap simulations.
+
+new_ebay <- ebay |>
+  mutate(revenue_ratio = rev_after/rev_before) |>
+  mutate(treatment = ifelse(adwords_pause == 1, TRUE, FALSE))
+
+# bootstrap 10,000 samples for both groups
+boot_treatment <- do(10000)*diffmean(revenue_ratio ~ treatment, data = mosaic::resample(new_ebay))
+
+# find the confidence interval for the difference
+confint(boot_treatment, level = 0.95)
+
+# visualize data
+boot_treatment |>
+  ggplot() + geom_histogram(aes(x = diffmean), fill = "pink", color = "black") +
+  labs(x = "Sample Revenue Ratio Difference", y = "Count", title= "95% Confidence Interval for Difference in Revenue Ratio Between the Treatment and Control DMAs")
+
+```
+
+1)  Question: What question are you trying to answer?
+I want to know whether the revenue ratio is the same in the treatment and control groups, or whether instead the data favors the idea that paid search advertising on Google creates extra revenue for EBay.
+2)  Approach: What approach/statistical tool did you use to answer the
+    question?
+    I created a new dataset from the ebay dataset to create a new variable called revenue ratio which divides rev_after by rev_before. I also created a variable called treatment to determine if the DMA was in the treatment group or if the DMA was in the control group.
+3)  Results: What evidence/results did your approach provide to answer
+    the question? (E.g. any numbers, tables, figures as appropriate.)
+    The confidence interval has a lower bound of -0.09113869 and an upper bound of -0.01287033 The estimated difference was -0.03678399
+4)  Conclusion: What is your conclusion about your question? Provide a
+    written interpretation of your results, understandable to
+    stakeholders who might plausibly take an interest in this data set.
+    Since the interval does not contain 0, there is statistically significant evidence that the revenue ratio is the not the same in the treatment and the control groups. We are 95% confident that the difference in revenue ratio between the treatment group and control group is in between a decrease of 0.09113869 and a decrease of 0.01287033.
+
